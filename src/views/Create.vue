@@ -52,10 +52,10 @@
                          v-if="Object.keys(grid).length>0 && width<=limit && height<=limit">
                         <div class="grid">
                             <template v-for="(gridRow,i) in grid">
-                                <template v-if="typeof grid[i] !== 'undefined'">
+                                <template v-if="typeof gridRow !== 'undefined'">
                                     <div class="grid-row" :style="{'width':(40*gridRow[0].length)+'px'}" :key="'i'+i">
                                         <template v-for="(gridColumn,j) in gridRow">
-                                            <template v-if="typeof grid[i][j] !== 'undefined'">
+                                            <template v-if="typeof gridColumn !== 'undefined'">
                                             <span class="grid-column"
                                                   :class="[getHighlightClass(i,j),isBlackened(i,j)?'blackened':'']"
                                                   :key="i+' '+j">
@@ -110,7 +110,7 @@
                 //Delete Excess Rows
                 for (let y = Object.keys(this.grid).length; y > this.height - 1; y--) {
                     if(this.gridExists(y,0)) {
-                        this.removeIndex(y); //Remove all indexes of in row.
+                        this.removeIndex(y); //Remove all indexes in this row.
                         Vue.delete(this.grid, y); //delete row from grid.
                     }
                 }
@@ -122,8 +122,8 @@
                         //Delete Excess columns
                         for (let x = Object.keys(this.grid[i]).length; x > this.width - 1; x--) {
                             if(this.gridExists(i,x)) {
-                                this.removeIndex(i, x); //Also remove any index that may exist
-                                Vue.delete(this.grid[i], x); //Delete Column from grid
+                                this.removeIndex(i, x); //Remove any index that may exist for this column.
+                                Vue.delete(this.grid[i], x); //Delete Column from grid.
                             }
                         }
                     }
@@ -177,7 +177,7 @@
                 return Object.keys(this.clues).sort().indexOf(i.toString() + j.toString()) + 1;
             },
             clueKeyIndex(key) {
-                return Object.keys(this.clues).map(x => Number(x)).sort().indexOf(key) + 1;
+                return Object.keys(this.clues).sort().indexOf(key) + 1;
             },
             highlightOrBlacken(i, j) {
                 this.highlightClasses = {};
@@ -192,14 +192,14 @@
                 Vue.set(this.highlightClasses, i.toString() + j.toString(), 'highlight-origin');
 
                 //Horizontal Highlights
-                let h = i + 1;
+                let h = parseInt(i) + 1;
                 while (this.gridExists(h, j) && !this.isBlackened(h, j)) {
                     Vue.set(this.highlightClasses, h.toString() + j.toString(), 'highlight-horizontal');
                     h++;
                 }
 
                 //Vertical Highlights
-                let v = j + 1;
+                let v = parseInt(j) + 1;
                 while (this.gridExists(i, v) && !this.isBlackened(i, v)) {
                     Vue.set(this.highlightClasses, i.toString() + v.toString(), 'highlight-vertical');
                     v++;
