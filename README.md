@@ -1,4 +1,6 @@
-# crossword
+# Vue Crossword (Under Construction)
+Inspiration from https://github.com/Piterden/vue-crossword.
+Piterden's has way more options that this one. This is just me doing something random ;) 
 
 ## Project setup
 ```
