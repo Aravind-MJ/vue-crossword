@@ -12,9 +12,8 @@
                                     Double click again to un-index it.
                                 </li>
                                 <li>
-                                    Long press an indexed column to highlight vertical and horizontal horizontal
-                                    words.<br>
-                                    Long press a non indexed column to disable a column.<br>
+                                    Long press an indexed column to highlight vertical and horizontal words.<br>
+                                    Long press a non indexed column to disable that column.<br>
                                     Long press again to make it normal.
                                 </li>
                                 <li>
@@ -28,8 +27,7 @@
                         </b-card-body>
                     </b-card>
                     <b-form-checkbox class="mt-3 mb-3" v-model="lock">Lock grid (this can prevent accidental change of
-                        width
-                        and height resetting the grid completely)
+                        width and height resetting the grid completely)
                     </b-form-checkbox>
                     <div class="crossword-grid-generator" v-if="!lock">
                         <b-row>
@@ -53,26 +51,26 @@
                     <div class="crossword-grid-wrapper mt-5"
                          v-if="Object.keys(grid).length>0 && width<=limit && height<=limit">
                         <div class="grid">
-                            <template v-for="i in width">
-                                <template v-if="typeof grid[i-1] !== 'undefined'">
-                                    <div class="grid-row" :style="{'width':(40*width)+'px'}" :key="'i'+(i-1)">
-                                        <template v-for="j in height">
-                                            <template v-if="typeof grid[i-1][j-1] !== 'undefined'">
+                            <template v-for="(w,i) in width">
+                                <template v-if="typeof grid[i] !== 'undefined'">
+                                    <div class="grid-row" :style="{'width':(40*width)+'px'}" :key="'i'+i">
+                                        <template v-for="(h,j) in height">
+                                            <template v-if="typeof grid[i][j] !== 'undefined'">
                                             <span class="grid-column"
-                                                  :class="[getHighlightClass(i-1,j-1),isBlackened(i-1,j-1)?'blackened':'']"
-                                                  :key="(i-1)+' '+(j-1)">
-                                                <span class="grid-index" v-if="clueIndex(i-1,j-1)>0">{{clueIndex(i-1,j-1)}}</span>
+                                                  :class="[getHighlightClass(i,j),isBlackened(i,j)?'blackened':'']"
+                                                  :key="i+' '+j">
+                                                <span class="grid-index" v-if="clueIndex(i,j)>0">{{clueIndex(i,j)}}</span>
                                                 <label for="grid-input" class="d-none">Grid Input</label>
                                                 <input class="grid-input text-center" title="Grid Input"
-                                                       @dblclick="toggleIndexer(i-1,j-1)"
-                                                       v-longpress="()=>highlightOrBlacken(i-1,j-1)"
+                                                       @dblclick="toggleIndexer(i,j)"
+                                                       v-longpress="()=>highlightOrBlacken(i,j)"
                                                        @keypress="function(e) {
                                                          if(!(e.key >= 'a' && e.key <= 'z') || (e.key >= 'A' && e.key <= 'Z' )){
                                                             e.preventDefault();
                                                          }
                                                        }"
-                                                       @input="grid[i-1][j-1]['value'] = $event.target.value.toUpperCase()"
-                                                       :value="grid[i-1][j-1]['value'].toUpperCase()" id="grid-input"
+                                                       @input="grid[i][j]['value'] = $event.target.value.toUpperCase()"
+                                                       :value="grid[i][j]['value'].toUpperCase()" id="grid-input"
                                                        maxlength="1">
                                             </span>
                                             </template>
@@ -126,7 +124,7 @@
             },
             toggleIndexer(i, j, forceDelete = false) {
                 //Do not index a blackened column
-                if(this.isBlackened(i,j)){
+                if (this.isBlackened(i, j)) {
                     return;
                 }
 
