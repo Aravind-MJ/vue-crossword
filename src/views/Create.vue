@@ -36,14 +36,14 @@
                             </b-col>
                             <b-col cols="5">
                                 <b-input type="number" v-model.number="width" min="1" :max="limit"
-                                         maxlength="2"></b-input>
+                                         @change="generateGrid()" maxlength="2"></b-input>
                             </b-col>
                             <b-col cols="1">
                                 <label>Height</label>
                             </b-col>
                             <b-col cols="5">
                                 <b-input type="number" v-model.number="height" min="1" :max="limit"
-                                         maxlength="2"></b-input>
+                                         @change="generateGrid()" maxlength="2"></b-input>
                             </b-col>
                         </b-row>
                         <!--<b-button class="mt-3" @click="createGrid()">Create</b-button>-->
@@ -51,15 +51,16 @@
                     <div class="crossword-grid-wrapper mt-5"
                          v-if="Object.keys(grid).length>0 && width<=limit && height<=limit">
                         <div class="grid">
-                            <template v-for="(w,i) in width">
+                            <template v-for="(gridRow,i) in grid">
                                 <template v-if="typeof grid[i] !== 'undefined'">
-                                    <div class="grid-row" :style="{'width':(40*width)+'px'}" :key="'i'+i">
-                                        <template v-for="(h,j) in height">
+                                    <div class="grid-row" :style="{'width':(40*gridRow[0].length)+'px'}" :key="'i'+i">
+                                        <template v-for="(gridColumn,j) in gridRow">
                                             <template v-if="typeof grid[i][j] !== 'undefined'">
                                             <span class="grid-column"
                                                   :class="[getHighlightClass(i,j),isBlackened(i,j)?'blackened':'']"
                                                   :key="i+' '+j">
-                                                <span class="grid-index" v-if="clueIndex(i,j)>0">{{clueIndex(i,j)}}</span>
+                                                <span class="grid-index"
+                                                      v-if="clueIndex(i,j)>0">{{clueIndex(i,j)}}</span>
                                                 <label for="grid-input" class="d-none">Grid Input</label>
                                                 <input class="grid-input text-center" title="Grid Input"
                                                        @dblclick="toggleIndexer(i,j)"
@@ -69,8 +70,8 @@
                                                             e.preventDefault();
                                                          }
                                                        }"
-                                                       @input="grid[i][j]['value'] = $event.target.value.toUpperCase()"
-                                                       :value="grid[i][j]['value'].toUpperCase()" id="grid-input"
+                                                       @input="gridColumn['value'] = $event.target.value.toUpperCase()"
+                                                       :value="gridColumn['value'].toUpperCase()" id="grid-input"
                                                        maxlength="1">
                                             </span>
                                             </template>
@@ -105,15 +106,34 @@
             }
         },
         methods: {
-            createGrid() {
-                this.grid = {};
-                for (let i = 0; i < this.width; i++) {
-                    Vue.set(this.grid, i, {});
-                    for (let j = 0; j < this.height; j++) {
-                        Vue.set(this.grid[i], j, {
-                            'blackened': false,
-                            'value': '',
-                        });
+            generateGrid() {
+                //Delete Excess Rows
+                for (let y = Object.keys(this.grid).length; y > this.height - 1; y--) {
+                    if(this.gridExists(y,0)) {
+                        this.removeIndex(y); //Remove all indexes of in row.
+                        Vue.delete(this.grid, y); //delete row from grid.
+                    }
+                }
+
+                for (let i = 0; i < this.height; i++) {
+                    if (typeof this.grid[i] === 'undefined') {
+                        Vue.set(this.grid, i, {});
+                    } else {
+                        //Delete Excess columns
+                        for (let x = Object.keys(this.grid[i]).length; x > this.width - 1; x--) {
+                            if(this.gridExists(i,x)) {
+                                this.removeIndex(i, x); //Also remove any index that may exist
+                                Vue.delete(this.grid[i], x); //Delete Column from grid
+                            }
+                        }
+                    }
+                    for (let j = 0; j < this.width; j++) {
+                        if (typeof this.grid[i][j] === 'undefined') {
+                            Vue.set(this.grid[i], j, {
+                                'blackened': false,
+                                'value': '',
+                            });
+                        }
                     }
                 }
             },
@@ -130,7 +150,7 @@
 
                 //Delete an index if exists. This enables the toggling effect.
                 if (typeof this.clues[i.toString() + j.toString()] !== "undefined" || forceDelete) {
-                    Vue.delete(this.clues, i.toString() + j.toString());
+                    this.removeIndex(i, j);
                 } else {
                     Vue.set(this.clues, i.toString() + j.toString(), {});
                     Vue.set(this.clues[i.toString() + j.toString()], 'horizontal', {
@@ -141,6 +161,16 @@
                         'include': true,
                         'clue': ''
                     });
+                }
+            },
+            removeIndex(i, j = null) {
+                if (j == null) {
+                    //This means indexes from an entire row must be removed.
+                    for (let z = 0; z < Object.keys(this.grid[i]).length; z++) {
+                        this.removeIndex(i, z); //Call this recursively on all available columns in that row.
+                    }
+                } else {
+                    Vue.delete(this.clues, i.toString() + j.toString());
                 }
             },
             clueIndex(i, j) {
@@ -191,20 +221,8 @@
                 return typeof this.grid[i] !== 'undefined' && typeof this.grid[i][j] !== 'undefined';
             }
         },
-        watch: {
-            width() {
-                if (!this.lock) {
-                    this.createGrid(); //Reset grid
-                }
-            },
-            height() {
-                if (!this.lock) {
-                    this.createGrid(); //Reset Grid
-                }
-            }
-        },
         created() {
-            this.createGrid();
+            this.generateGrid();
         }
     }
 </script>
